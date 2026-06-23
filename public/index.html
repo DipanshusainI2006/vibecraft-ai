@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VibeCraft AI — Autonomous UI Dev & QA Pipeline</title>
+  <meta name="description" content="Autonomous multi-agent pipeline for UI generation, code writing, and QA verification powered by Gemini AI." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Ambient background layers -->
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
+  <div class="bg-orb bg-orb-3"></div>
+  <div class="bg-grid"></div>
+
+  <div class="app-shell">
+
+    <!-- ═══════════════════ TOP HEADER BAR ═══════════════════ -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="brand">
+          <div class="brand-icon">
+            <span class="brand-dot"></span>
+          </div>
+          <span class="brand-name">VibeCraft<span class="brand-ai"> AI</span></span>
+          <span class="brand-tag">Freestyle Track</span>
+        </div>
+      </div>
+      <div class="topbar-center">
+        <div class="pipeline-status-bar" id="pipeline-status-bar">
+          <span class="status-pip idle" id="global-pip"></span>
+          <span class="status-label" id="global-status-label">Pipeline Idle — Ready to Execute</span>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="header-meta">
+          <span class="meta-chip">gemini-2.5-pro</span>
+          <span class="meta-chip">gemini-2.5-flash</span>
+          <span class="meta-chip accent">Zero-Trust QA</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- ═══════════════════ MAIN WORKSPACE ═══════════════════ -->
+    <main class="workspace">
+
+      <!-- ──────────── LEFT PANEL: Pipeline Controller ──────────── -->
+      <aside class="panel panel-left">
+        <div class="panel-titlebar">
+          <div class="panel-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Pipeline Controller
+          </div>
+          <div class="panel-actions">
+            <span class="run-mode-badge" id="mode-badge">DEMO MODE</span>
+          </div>
+        </div>
+
+        <div class="panel-body">
+          <!-- Mode selector -->
+          <div class="control-section">
+            <label class="ctrl-label">Execution Mode</label>
+            <div class="mode-toggle">
+              <button id="btn-mode-sim" class="mode-btn active" onclick="setMode('sim')">
+                <span class="mode-icon">⚡</span> Interactive Demo
+              </button>
+              <button id="btn-mode-live" class="mode-btn" onclick="setMode('live')">
+                <span class="mode-icon">🔴</span> Live Gemini API
+              </button>
+            </div>
+          </div>
+
+          <!-- API Key -->
+          <div class="control-section hidden" id="api-key-section">
+            <label class="ctrl-label" for="api-key">Gemini API Key</label>
+            <div class="key-input-wrap">
+              <svg class="key-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21 2-1 1-1-1-4 4a5 5 0 1 0 3 3z"/></svg>
+              <input type="password" id="api-key" class="key-input" placeholder="AIzaSy..." />
+            </div>
+            <p class="ctrl-hint">Stored in session only. Never transmitted elsewhere.</p>
+          </div>
+
+          <!-- Prompt -->
+          <div class="control-section">
+            <label class="ctrl-label" for="prompt-input">UI Design Prompt</label>
+            <textarea id="prompt-input" class="prompt-textarea" rows="4" placeholder="Describe the UI component you need...">Cyberpunk coffee shop landing page with product grid, order counter, and glassmorphism cards</textarea>
+          </div>
+
+          <!-- Run button -->
+          <button id="btn-run" class="run-btn" onclick="startPipeline()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            <span id="btn-run-label">Execute Pipeline</span>
+          </button>
+
+          <!-- Divider -->
+          <div class="divider"></div>
+
+          <!-- Stage tracker -->
+          <div class="control-section">
+            <label class="ctrl-label">Pipeline Stages</label>
+            <div class="stages">
+              <div class="stage" id="stage-spec">
+                <div class="stage-track">
+                  <div class="stage-node">
+                    <span class="stage-num">1</span>
+                  </div>
+                  <div class="stage-line"></div>
+                </div>
+                <div class="stage-info">
+                  <div class="stage-name">Spec Generation</div>
+                  <div class="stage-state" id="stage-spec-state">Idle</div>
+                </div>
+              </div>
+              <div class="stage" id="stage-code">
+                <div class="stage-track">
+                  <div class="stage-node">
+                    <span class="stage-num">2</span>
+                  </div>
+                  <div class="stage-line"></div>
+                </div>
+                <div class="stage-info">
+                  <div class="stage-name">Code Generation</div>
+                  <div class="stage-state" id="stage-code-state">Idle</div>
+                </div>
+              </div>
+              <div class="stage" id="stage-qa">
+                <div class="stage-track">
+                  <div class="stage-node">
+                    <span class="stage-num">3</span>
+                  </div>
+                  <div class="stage-line"></div>
+                </div>
+                <div class="stage-info">
+                  <div class="stage-name">QA Evaluation</div>
+                  <div class="stage-state" id="stage-qa-state">Idle</div>
+                </div>
+              </div>
+              <div class="stage" id="stage-done">
+                <div class="stage-track">
+                  <div class="stage-node">
+                    <span class="stage-num">✓</span>
+                  </div>
+                </div>
+                <div class="stage-info">
+                  <div class="stage-name">Approved & Rendered</div>
+                  <div class="stage-state" id="stage-done-state">Idle</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- ──────────── CENTER PANEL: Agent Workspace ──────────── -->
+      <section class="panel panel-center">
+        <div class="panel-titlebar">
+          <div class="panel-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+            Agent Workspace
+          </div>
+          <div class="panel-actions">
+            <button class="icon-btn" onclick="clearLogs()" title="Clear logs">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="panel-body no-pad">
+
+          <!-- DAG Flow Graph -->
+          <div class="dag-container">
+            <div class="dag-inner">
+              <!-- Node: Spec Writer -->
+              <div class="dag-node" id="dag-spec">
+                <div class="dag-node-icon">🧠</div>
+                <div class="dag-node-body">
+                  <div class="dag-node-title">Spec Writer</div>
+                  <div class="dag-node-model">gemini-2.5-pro</div>
+                </div>
+                <div class="dag-node-state" id="dag-spec-state"></div>
+              </div>
+
+              <!-- Arrow -->
+              <div class="dag-arrow" id="arrow-1">
+                <div class="dag-arrow-line"></div>
+                <div class="dag-arrow-head">▶</div>
+              </div>
+
+              <!-- Node: UI Coder -->
+              <div class="dag-node" id="dag-code">
+                <div class="dag-node-icon">💻</div>
+                <div class="dag-node-body">
+                  <div class="dag-node-title">UI Coder</div>
+                  <div class="dag-node-model">gemini-2.5-flash</div>
+                </div>
+                <div class="dag-node-state" id="dag-code-state"></div>
+              </div>
+
+              <!-- Arrow (bidirectional) -->
+              <div class="dag-arrow bidirectional" id="arrow-2">
+                <div class="dag-arrow-line"></div>
+                <div class="dag-arrow-head">▶</div>
+                <div class="dag-loop-label">Correction Loop</div>
+              </div>
+
+              <!-- Node: QA Judge -->
+              <div class="dag-node" id="dag-qa">
+                <div class="dag-node-icon">🛡️</div>
+                <div class="dag-node-body">
+                  <div class="dag-node-title">QA Judge</div>
+                  <div class="dag-node-model">gemini-2.5-pro</div>
+                </div>
+                <div class="dag-node-state" id="dag-qa-state"></div>
+              </div>
+
+              <!-- Arrow -->
+              <div class="dag-arrow approved" id="arrow-3">
+                <div class="dag-arrow-line"></div>
+                <div class="dag-arrow-head">▶</div>
+              </div>
+
+              <!-- Node: Sandbox -->
+              <div class="dag-node dag-node-output" id="dag-out">
+                <div class="dag-node-icon">🚀</div>
+                <div class="dag-node-body">
+                  <div class="dag-node-title">Sandbox</div>
+                  <div class="dag-node-model">Approved Output</div>
+                </div>
+                <div class="dag-node-state" id="dag-out-state"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Terminal Console -->
+          <div class="terminal">
+            <div class="terminal-topbar">
+              <div class="terminal-dots">
+                <span class="tdot red"></span>
+                <span class="tdot yellow"></span>
+                <span class="tdot green"></span>
+              </div>
+              <span class="terminal-title">agent-pipeline.log</span>
+              <span class="terminal-iter" id="iter-counter"></span>
+            </div>
+            <div class="terminal-output" id="terminal-output">
+              <div class="tline tline-system">▸ VibeCraft pipeline ready. Configure prompt and click Execute Pipeline.</div>
+            </div>
+          </div>
+
+          <!-- Code Viewer -->
+          <div class="code-viewer-container">
+            <div class="code-viewer-topbar">
+              <div class="code-viewer-tabs" id="code-tabs">
+                <span class="code-tab-placeholder">No revisions yet</span>
+              </div>
+              <div class="code-viewer-meta" id="code-meta"></div>
+            </div>
+            <div class="code-output-scroll">
+              <pre class="code-output" id="code-output"><code>// Generated code will appear here after pipeline runs.</code></pre>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ──────────── RIGHT PANEL: Output Viewer ──────────── -->
+      <aside class="panel panel-right">
+        <div class="panel-titlebar">
+          <div class="output-tabs">
+            <button class="out-tab active" id="tab-preview" onclick="switchOutTab('preview')">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+              Preview
+            </button>
+            <button class="out-tab" id="tab-spec" onclick="switchOutTab('spec')">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              Spec
+            </button>
+            <button class="out-tab" id="tab-audit" onclick="switchOutTab('audit')">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              Audit
+            </button>
+          </div>
+        </div>
+
+        <div class="panel-body no-pad">
+
+          <!-- ── Preview Tab ── -->
+          <div class="out-content active" id="content-preview">
+            <div class="preview-shell">
+              <div class="preview-bar">
+                <div class="preview-dots">
+                  <span class="tdot red"></span>
+                  <span class="tdot yellow"></span>
+                  <span class="tdot green"></span>
+                </div>
+                <div class="preview-url" id="preview-url">about:blank</div>
+              </div>
+              <iframe id="preview-frame" class="preview-iframe" sandbox="allow-scripts allow-same-origin" src="about:blank"></iframe>
+              <div class="preview-placeholder" id="preview-placeholder">
+                <div class="placeholder-icon">🖼️</div>
+                <div class="placeholder-title">Live Preview</div>
+                <div class="placeholder-sub">Generated UI will render here after pipeline completes</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── Spec Tab ── -->
+          <div class="out-content" id="content-spec">
+            <div class="spec-body" id="spec-body">
+              <div class="empty-state">
+                <div class="empty-icon">📋</div>
+                <div class="empty-title">Design Specification</div>
+                <div class="empty-sub">The Spec Writer agent will generate a detailed layout and design blueprint here.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── Audit Tab ── -->
+          <div class="out-content" id="content-audit">
+            <div class="audit-body">
+
+              <!-- Score row -->
+              <div class="audit-score-row">
+                <div class="audit-score-ring" id="score-ring">
+                  <svg class="ring-svg" viewBox="0 0 80 80">
+                    <circle class="ring-bg" cx="40" cy="40" r="32"/>
+                    <circle class="ring-fg" id="ring-fg" cx="40" cy="40" r="32" stroke-dasharray="201.06" stroke-dashoffset="201.06"/>
+                  </svg>
+                  <div class="ring-label">
+                    <span class="ring-value" id="ring-value">--</span>
+                    <span class="ring-unit">/ 100</span>
+                  </div>
+                </div>
+                <div class="audit-score-meta">
+                  <div class="audit-verdict" id="audit-verdict">Pending</div>
+                  <div class="audit-run-info" id="audit-run-info">No runs completed</div>
+                  <div class="audit-counts" id="audit-counts"></div>
+                </div>
+              </div>
+
+              <!-- Policy checks -->
+              <div class="audit-section">
+                <div class="audit-section-title">Security Policies</div>
+                <div class="policy-list">
+                  <div class="policy-item" id="pol-syntax">
+                    <div class="policy-icon">⚪</div>
+                    <div class="policy-info">
+                      <div class="policy-name">Structural Tag Alignment</div>
+                      <div class="policy-desc">All HTML tags must be properly nested and closed</div>
+                    </div>
+                  </div>
+                  <div class="policy-item" id="pol-eval">
+                    <div class="policy-icon">⚪</div>
+                    <div class="policy-info">
+                      <div class="policy-name">Prohibited eval() Usage</div>
+                      <div class="policy-desc">Raw eval() calls are strictly forbidden</div>
+                    </div>
+                  </div>
+                  <div class="policy-item" id="pol-dom">
+                    <div class="policy-icon">⚪</div>
+                    <div class="policy-info">
+                      <div class="policy-name">Safe DOM Manipulation</div>
+                      <div class="policy-desc">document.write() must not be used</div>
+                    </div>
+                  </div>
+                  <div class="policy-item" id="pol-ssl">
+                    <div class="policy-icon">⚪</div>
+                    <div class="policy-info">
+                      <div class="policy-name">Encrypted Resource Imports</div>
+                      <div class="policy-desc">All external scripts must use HTTPS</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Findings -->
+              <div class="audit-section audit-findings-section">
+                <div class="audit-section-title">Findings & Violations</div>
+                <div class="findings-list" id="findings-list">
+                  <div class="finding-empty">Run the pipeline to generate the security audit report.</div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </aside>
+
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
