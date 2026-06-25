@@ -75,6 +75,14 @@ graph TD
 
 ---
 
+## 🎥 Agent Pipeline Execution Video
+
+Here is a recording showing the autonomous multi-agent pipeline executing in simulation mode:
+
+![Agent Pipeline Execution](images/agent_pipeline_execution.webp)
+
+---
+
 ## 🛡️ QA Linter Rules
 
 The QA validation is executed by the custom static analyzer inside `linter.js`. It enforces the following security and structural patterns:
